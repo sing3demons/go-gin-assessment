@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -80,7 +81,7 @@ func main() {
 	}()
 
 	shutdown := make(chan os.Signal, 1)
-	signal.Notify(shutdown, os.Interrupt)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 	<-shutdown
 	fmt.Println("shutting down...")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
