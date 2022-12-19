@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  db:
+    container_name: postgres
+    image: postgres:15.1
+    environment:
+      POSTGRES_DB: goapi
+      POSTGRES_USER: sing
+      POSTGRES_PASSWORD: 12345678
+    restart: always
+    ports:
+      - 5432:5432
+    # volumes:
+      # - ./_data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
