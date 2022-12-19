@@ -20,11 +20,11 @@ func initDB() *sql.DB {
 
 	createTb := `
 	CREATE TABLE IF NOT EXISTS expenses (
-	id SERIAL PRIMARY KEY,
-	"title" text,
-	"amount" integer,
-	"note" text,
-	"tags" jsonb
+		id SERIAL PRIMARY KEY,
+		title TEXT,
+		amount FLOAT,
+		note TEXT,
+		tags TEXT[]
 	);
 	`
 	_, err = db.Exec(createTb)
