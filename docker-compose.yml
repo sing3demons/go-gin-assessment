@@ -10,10 +10,22 @@ services:
     restart: always
     ports:
       - 5432:5432
-    # volumes:
+      # volumes:
       # - ./_data:/var/lib/postgresql/data
   adminer:
     image: adminer
     restart: always
     ports:
       - 8080:8080
+  webapi:
+    container_name: webapi
+    build: .
+    ports:
+      - 2565:2565
+    restart: always
+    environment:
+      - PORT=2565
+      - DATABASE_URL="host=db port=5432 user=sing password=12345678 dbname=goapi sslmode=disable"
+      - GIN_MODE=release
+    depends_on:
+      - db

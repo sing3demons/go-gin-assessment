@@ -1,0 +1,30 @@
+@uri=http://127.0.0.1:2565/expenses
+POST {{uri}} HTTP/1.1
+Content-Type: application/json
+
+{
+	"title": "buy a new phone",
+	"amount": 39000,
+	"note": "buy a new phone",
+	"tags": ["gadget", "shopping"]
+}
+
+###
+GET {{uri}}/1 HTTP/1.1
+###
+
+PUT {{uri}}/1 HTTP/1.1
+Content-Type: application/json
+
+{
+	"title": "buy a new phone",
+	"amount": 39100,
+	"note": "buy a new phone",
+	"tags": ["gadget", "shopping"]
+}
+
+###
+DELETE {{uri}}/1 HTTP/1.1
+
+###
+GET {{uri}} HTTP/1.1

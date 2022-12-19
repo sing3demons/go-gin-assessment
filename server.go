@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+	"github.com/sing3demons/assessment/rest/handler"
 )
 
 func initDB() *sql.DB {
@@ -35,16 +39,55 @@ func initDB() *sql.DB {
 	return db
 }
 
+func basicAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, password, hasAuth := c.Request.BasicAuth()
+		if hasAuth && user == "admin" && password == "admin" {
+			c.Next()
+		} else {
+			c.Abort()
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"message": "Username/Password incorrect.",
+			})
+			return
+		}
+	}
+}
+
 func main() {
-	fmt.Println("Please use server.go for main file")
-	initDB()
+	db := initDB()
+	h := handler.NewApplication(db)
 
 	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Hello",
-		})
-	})
-	r.Run(":" + os.Getenv("PORT"))
-	// fmt.Println("start at port:", os.Getenv("PORT"))
+	r.GET("/", h.Greeting)
+
+	r.POST("/expenses", h.CreateExpenses)
+	r.GET("/expenses/:id", h.GetExpensesByID)
+	r.PUT("/expenses/:id", h.UpdateExpenses)
+	r.DELETE("/expenses/:id", h.DeleteExpense)
+	// r.GET("/expenses", h.ListExpenses)
+	r.GET("/expenses", basicAuth(), h.ListExpenses)
+
+	srv := &http.Server{
+		Addr:    ":" + os.Getenv("PORT"),
+		Handler: r,
+	}
+	fmt.Println("start at port:", os.Getenv("PORT"))
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt)
+	<-shutdown
+	fmt.Println("shutting down...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("server stop")
 }
